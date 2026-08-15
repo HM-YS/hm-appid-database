@@ -3,15 +3,16 @@ run-name: 获取并更新 Steam AppID 数据
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - 'main'
   schedule:
     - cron: "0 0 * * *"
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -25,7 +26,16 @@ jobs:
           STEAM_KEY: ${{ secrets.STEAM_KEY }}
 
       - name: 提交并推送数据
-        uses: actions-js/push@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: "main"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "没有数据变化，无需提交"
+            exit 0
+          fi
+
+          git commit -m "Update Steam AppID data"
+          git push
