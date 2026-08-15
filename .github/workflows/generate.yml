@@ -1,0 +1,31 @@
+name: 获取 Steam 数据
+run-name: 获取并更新 Steam AppID 数据
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 获取 Steam AppID 数据
+        run: node index.js
+        env:
+          STEAM_KEY: ${{ secrets.STEAM_KEY }}
+
+      - name: 提交并推送数据
+        uses: actions-js/push@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: "main"
